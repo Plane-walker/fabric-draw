@@ -1,0 +1,33 @@
+
+  {{PEER_NAME}}.{{DOMAIN_NAME}}:
+    container_name: {{PEER_NAME}}.{{DOMAIN_NAME}}
+    image: hyperledger/fabric-orderer:2.2.0
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/{{PEER_NAME}}/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID={{ORG_MSP}}
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/{{PEER_NAME}}/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/{{PEER_NAME}}/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/{{PEER_NAME}}/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/{{PEER_NAME}}/tls/ca.crt]
+      - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+      - ORDERER_KAFKA_VERBOSE=true
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/{{PEER_NAME}}/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/{{PEER_NAME}}/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/{{PEER_NAME}}/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+        - $CRYPTO_BASE/channel-artifacts/orderer.genesis.block:/var/hyperledger/{{PEER_NAME}}/orderer.genesis.block
+        - $CRYPTO_BASE/organizations/{{PEER_NAME}}Organizations/{{DOMAIN_NAME}}/{{PEER_NAME}}s/{{PEER_NAME}}.{{DOMAIN_NAME}}/msp:/var/hyperledger/{{PEER_NAME}}/msp
+        - $CRYPTO_BASE/organizations/{{PEER_NAME}}Organizations/{{DOMAIN_NAME}}/{{PEER_NAME}}s/{{PEER_NAME}}.{{DOMAIN_NAME}}/tls/:/var/hyperledger/{{PEER_NAME}}/tls
+        - {{PEER_NAME}}.{{DOMAIN_NAME}}:/var/hyperledger/production/{{PEER_NAME}}
+    ports:
+      - {{OUT_PORT}}:7050
+    networks:
+      - {{DOMAIN_NETWORK}}
