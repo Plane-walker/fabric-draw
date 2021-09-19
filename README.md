@@ -4,14 +4,14 @@
 {
   "groups": {
     "orderer.test.com": {
-        "peers": ["peer0.org1.test.com"], 
-        "blockchains": ["channel-1"]
+      "peers": ["peer0.org1.test.com"], 
+      "blockchains": ["channel-1"]
     }, 
     "org1.test.com": {
-        "leader_peers": ["peer0.org1.test.com","peer0.org2.test.com"], 
-        "anchor_peers": [],
-        "committing_peer": [],
-        "endorsing_peers":[]
+      "leader_peers": ["peer0.org1.test.com","peer0.org2.test.com"], 
+      "anchor_peers": [],
+      "committing_peer": [],
+      "endorsing_peers":[]
     }
   },
   "peers": {
