@@ -1,5 +1,6 @@
 # fabric-draw
-```
+## Data transmission format
+```json 
 {
   "groups": {
     "orderer.test.com": {
