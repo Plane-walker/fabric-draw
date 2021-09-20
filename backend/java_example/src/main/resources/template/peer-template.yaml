@@ -1,0 +1,38 @@
+
+  {{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}:
+    container_name: {{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}
+    image: hyperledger/fabric-peer:2.2.0
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      # the following setting starts chaincode containers on the same
+      # bridge network as the peers
+      # https://docs.docker.com/compose/networking/
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=root_{{DOMAIN_NETWORK}}
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variabes
+      - CORE_PEER_ID={{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}
+      - CORE_PEER_ADDRESS={{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS={{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT={{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}:7051
+      - CORE_PEER_LOCALMSPID={{ORG_MSP}}
+    volumes:
+        - /var/run/:/host/var/run/
+        - $CRYPTO_BASE/organizations/peerOrganizations/{{ORG_NAME}}.{{DOMAIN_NAME}}/peers/{{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}/msp:/etc/hyperledger/fabric/msp
+        - $CRYPTO_BASE/organizations/peerOrganizations/{{ORG_NAME}}.{{DOMAIN_NAME}}/peers/{{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}/tls:/etc/hyperledger/fabric/tls
+        - {{PEER_NAME}}.{{ORG_NAME}}.{{DOMAIN_NAME}}:/var/hyperledger/production
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    ports:
+      - {{OUT_PORT}}:7051
+    networks:
+      - {{DOMAIN_NETWORK}}

@@ -1,0 +1,13 @@
+export CORE_ORDERER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/test.com/tlsca/tlsca.test.com-cert.pem
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.test.com/users/Admin@org1.test.com/msp
+export CORE_PEER_ADDRESS=peer0.org1.test.com:7051
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.test.com/tlsca/tlsca.org1.test.com-cert.pem
+export CHANNEL_NAME=channel-1
+
+cd /opt/gopath/src/github.com/hyperledger/fabric/peer
+peer lifecycle chaincode commit -o orderer.test.com:7050 --ordererTLSHostnameOverride orderer.test.com --channelID channel-1 --name patcc --version 1.0 --sequence 1 --tls --cafile $CORE_ORDERER_TLS_ROOTCERT_FILE --peerAddresses peer0.org1.test.com:7051 --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE --peerAddresses peer0.org2.test.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.test.com/tlsca/tlsca.org2.test.com-cert.pem
+peer lifecycle chaincode commit -o orderer.test.com:7050 --ordererTLSHostnameOverride orderer.test.com --channelID channel-1 --name doccc --version 1.0 --sequence 1 --tls --cafile $CORE_ORDERER_TLS_ROOTCERT_FILE --peerAddresses peer0.org1.test.com:7051 --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE --peerAddresses peer0.org2.test.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.test.com/tlsca/tlsca.org2.test.com-cert.pem
+peer lifecycle chaincode commit -o orderer.test.com:7050 --ordererTLSHostnameOverride orderer.test.com --channelID channel-1 --name pdcc --version 1.0 --sequence 1 --tls --cafile $CORE_ORDERER_TLS_ROOTCERT_FILE --peerAddresses peer0.org1.test.com:7051 --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE --peerAddresses peer0.org2.test.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.test.com/tlsca/tlsca.org2.test.com-cert.pem
+
+# peer chaincode invoke -o orderer.test.com:7050 --ordererTLSHostnameOverride orderer.test.com --tls --cafile $CORE_ORDERER_TLS_ROOTCERT_FILE -C channel-1 -n patcc --peerAddresses peer0.org1.test.com:7051 --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE --peerAddresses peer0.org2.test.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.test.com/tlsca/tlsca.org2.test.com-cert.pem -c '{"function":"createAccount","Args":["user0", "publicKey", "hello world"]}'

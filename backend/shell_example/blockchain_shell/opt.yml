@@ -1,0 +1,29 @@
+server:
+   port: 8000
+msp:
+   peerName: peer0.org1.test.com
+   key: /root/opt/organizations/peerOrganizations/org1.test.com/users/Admin@org1.test.com/msp/keystore/sk
+   cert: /root/opt/organizations/peerOrganizations/org1.test.com/users/Admin@org1.test.com/msp/signcerts/cert.pem
+   networkConfig: /root/opt/organizations/peerOrganizations/org1.test.com/connection-org1.yaml
+   mspName: Org1MSP
+crossmsp:
+   peerName: peer0.org1.cross.com
+   key: /root/cross/organizations/peerOrganizations/org1.cross.com/users/Admin@org1.cross.com/msp/keystore/sk
+   cert: /root/cross/organizations/peerOrganizations/org1.cross.com/users/Admin@org1.cross.com/msp/signcerts/cert.pem
+   networkConfig: /root/cross/organizations/peerOrganizations/org1.cross.com/connection-org1.yaml
+   mspName: Org1MSP
+   
+server:
+   port: 8000
+msp:
+   peerName: peer0.org1.test2.com
+   key: /root/opt/organizations/peerOrganizations/org1.test2.com/users/Admin@org1.test2.com/msp/keystore/sk
+   cert: /root/opt/organizations/peerOrganizations/org1.test2.com/users/Admin@org1.test2.com/msp/signcerts/cert.pem
+   networkConfig: /root/opt/organizations/peerOrganizations/org1.test2.com/connection-org2.yaml
+   mspName: Org1MSP
+crossmsp:
+   peerName: peer0.org2.cross.com
+   key: /root/cross/organizations/peerOrganizations/org2.cross.com/users/Admin@org2.cross.com/msp/keystore/sk
+   cert: /root/cross/organizations/peerOrganizations/org2.cross.com/users/Admin@org2.cross.com/msp/signcerts/cert.pem
+   networkConfig: /root/cross/organizations/peerOrganizations/org2.cross.com/connection-org2.yaml
+   mspName: Org2MSP
