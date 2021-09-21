@@ -1,0 +1,32 @@
+---
+name: cross-network-org1
+version: 1.0.0
+client:
+  organization: Org1
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+    - peer0.org1.cross.com
+    certificateAuthorities:
+    - ca.org1.cross.com
+peers:
+  peer0.org1.cross.com:
+    url: grpcs://PEER0_ORG1_IP:8051
+    tlsCACerts:
+      path: E:/cross/org1.cross.com/tlsca/tlsca.org1.cross.com-cert.pem
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.cross.com
+      hostnameOverride: peer0.org1.cross.com
+certificateAuthorities:
+  ca.org1.cross.com:
+    url: https://47.105.126.22:8054
+    caName: ca-org1
+    tlsCACerts:
+      path: E://org1.cross.com/tls-cert.pem
+    httpOptions:
+      verify: false
