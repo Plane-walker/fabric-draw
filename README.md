@@ -4,17 +4,22 @@
 {
   "groups": {
     "orderer.test.com": {
-      "nodes": ["peer0.org1.test.com"], 
-      "blockchains": ["channel-1"]
+      "nodes": {
+	    "ca": "ca.orderer.test.com",
+	    "orderer": ["peer0.org1.test.com"]
+	  },
+      "blockchains": "fabric-1"
     }, 
     "org1.test.com": {
       "nodes": {
+	    "ca": "ca.org1.test.com",
         "leader_peers": ["peer0.org1.test.com"], 
         "anchor_peers": ["peer0.org2.test.com"],
         "committing_peers": [],
-        "endorsing_peers":[],
-      }
-      "blockchains": ["channel-1"]
+        "endorsing_peers":[]
+      },
+	  "blockchains": "fabric-1",
+    "channel": ["channel-1"]
     }
   },
   "nodes": {
@@ -25,8 +30,10 @@
     }
   },
   "blockchains": {
-    "channel-1": {
-      "name": "TwoOrgsChannel"
+    "fabric-1": {
+      "channel-1": {
+        "name": "TwoOrgsChannel"
+      }
     }
   }
 }
