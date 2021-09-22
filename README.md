@@ -38,3 +38,13 @@
   }
 }
 ```
+
+## atomic steps
+### create org
+### create peer
+### docker compose
+### mkdir
+### build env
+### edit host
+### configtxgen
+### docker swarm
