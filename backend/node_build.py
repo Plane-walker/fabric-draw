@@ -33,11 +33,20 @@ def docker_compose(path: str, down: bool = False) -> subprocess.CompletedProcess
     return subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
+def update_hosts(new_hosts):
+    command = 'echo "'
+    for ip, domain in new_hosts.items():
+        command += f'{ip} {domain}\n'
+    command += ' >> /etc/hosts'
+    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+
+
 if __name__ == "__main__":
+    update_hosts({'1.1.1.1': 'a.com', '2.2.2.2': 'b.vom'})
     parser = argparse.ArgumentParser(description="")
-    
+
     parser.add_argument("--docker-compose", type=str, help="Test docker_compose function.")
-    # Test: python3 node_build.py --docker-compose ./docker-compose.yml 
+    # Test: python3 node_build.py --docker-compose ./docker-compose.yml
 
     args = parser.parse_args()
 
