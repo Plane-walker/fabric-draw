@@ -1,5 +1,15 @@
 import subprocess
 import argparse
+import os
+
+
+def mkdir(path: str):
+    """
+    :param path: The relative path from main program or absolute path
+    """
+    if not os.path.exists(path):
+        command = f'mkdir -p {path}'
+        subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
 def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
@@ -48,9 +58,13 @@ if __name__ == "__main__":
     parser.add_argument("--docker-compose", type=str, help="Test docker_compose function.")
     # Test: python3 node_build.py --docker-compose ./docker-compose.yml
 
+    parser.add_argument("--mkdir", type=str, help="Test mkdir function.")
+
     args = parser.parse_args()
 
     print(args)
     if args.docker_compose:
         docker_compose(args.docker_compose)
         docker_compose(args.docker_compose, down=True)
+    elif args.mkdir:
+        mkdir(args.mkdir)
