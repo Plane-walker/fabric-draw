@@ -34,7 +34,6 @@ def init_channel_artifacts(crypto_base, fabric_name, channel_id, channel_name, o
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
-
 def docker_compose(path: str, down: bool = False) -> subprocess.CompletedProcess:
     """
     :param path: The relative path from main program or absolute path of docker-compose.yaml(including filename)
