@@ -13,16 +13,24 @@ def mkdir(path: str):
 
 
 def org_msp_generate(crypto_base: str, name: str, domain: str, port):
+    """
+    order org path: CRYPTO_BASE/organizations/NAME.DOMAIN
+    peer  org path: CRYPTO_BASE/organizations/NAME.DOMAIN
+    
+    ca_tls_ca path: CRYTRO_BASE/organizations/fabric-ca/NAME/tls-cert.pem
+        e.g. order: CRYTRO_BASE/organizations/fabric-ca/orderer/tls-cert.pem
+              peer: CRYTRO_BASE/organizations/fabric-ca/org1/tls-cert.pem
+    
+    fabric-ca-client enroll -u: https://admin:adminpw@ca.NAME.DOMAIN:PORT
+                    e.g. order: https://admin:adminpw@ca.orderer.test.com:7054
+                          peer: https://admin:adminpw@ca.org1.test.com:7054
+    """
     crypto_base += '/organizations/' if crypto_base[-1] != '/' else 'organizations/'
-    org_home = f'peerOrganizations/{name}.{domain}/' if name != 'orderer' else f'ordererOrganizations/{domain}/'
-    org_home = f'{crypto_base}' + org_home
+    org_home = f'{crypto_base}/{name}.{domain}/'
     command = f'mkdir -p ' + org_home + f';'
 
-    ca_tls_ca = f'{crypto_base}fabric-ca/'
-    ca_tls_ca += f'ordererOrg/tls-cert.pem' if name == 'orderer' else f'{name}/tls-cert.pem'
-    command += f'fabric-ca-client enroll -u https://admin:adminpw@ca.'
-    command += f'{name}.' if name != 'orderer' else ''
-    command += f'{domain}:{port} --caname ca-{name} --tls.certfiles {ca_tls_ca};'
+    ca_tls_ca = f'{crypto_base}fabric-ca/{name}/tls-cert.pem'
+    command += f'fabric-ca-client enroll -u https://admin:adminpw@ca.{name}.{domain}:{port} --caname ca-{name} --tls.certfiles {ca_tls_ca};'
     
     config_text = f"NodeOUs:\n" \
                   f"Enable: true\n" \
@@ -44,7 +52,7 @@ def org_msp_generate(crypto_base: str, name: str, domain: str, port):
 
 
 def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
-    org_home = f'{crypto_base}/organizations/peerOrganizations/{org_name}.{org_domain}'
+    org_home = f'{crypto_base}/organizations/{org_name}.{org_domain}'
     peer_home = f'{org_home}/peers/{peer_name}.{org_name}.{org_domain}'
     ca_tls_ca = f'{crypto_base}/organizations/fabric-ca/{org_name}/tls-cert.pem'
     command = f'mkdir -p {peer_home};' \
@@ -59,7 +67,7 @@ def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
               f'mkdir -p {org_home}/msp/tlscacerts;' \
               f'cp {peer_home}/tls/tlscacerts/* {org_home}/msp/tlscacerts/ca.crt;' \
               f'mkdir -p {org_home}/tlsca;' \
-              f'cp {peer_home}/tls/tlscacerts/* {org_home}/tlsca/tlsca.{org_name}.${org_domain}-cert.pem;' \
+              f'cp {peer_home}/tls/tlscacerts/* {org_home}/tlsca/tlsca.{org_name}.{org_domain}-cert.pem;' \
               f'mkdir -p {org_home}/ca;' \
               f'cp {peer_home}/msp/cacerts/* {org_domain}/ca;'
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
