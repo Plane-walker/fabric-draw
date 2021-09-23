@@ -44,6 +44,21 @@ def init_channel_artifacts(crypto_base, fabric_name, channel_id, channel_name, o
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
+def init_docker_swarm(host, channel_name, data_path_port='5789'):
+    command = f'docker swarm init --advertise-addr {host} --data-path-port {data_path_port}'
+    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    command = 'docker swarm join-token -q manager'
+    token = subprocess.run(command, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+    command = f'docker network create --attachable --driver overlay {channel_name}'
+    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    return token
+
+
+def join_docker_swarm(token, host, target_host, target_port=2377):
+    command = f'docker swarm join --token {token} {target_host}:{target_port} --advertise-addr {host}'
+    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+
+
 def docker_compose(path: str, down: bool = False) -> subprocess.CompletedProcess:
     """
     :param path: The relative path from main program or absolute path of docker-compose.yaml(including filename)
