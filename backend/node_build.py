@@ -12,6 +12,37 @@ def mkdir(path: str):
         subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
+def org_msp_generate(crypto_base: str, name: str, domain: str, port):
+    crypto_base += '/organizations/' if crypto_base[-1] != '/' else 'organizations/'
+    org_home = f'peerOrganizations/{name}.{domain}/' if name != 'orderer' else f'ordererOrganizations/{domain}/'
+    org_home = f'{crypto_base}' + org_home
+    command = f'mkdir -p ' + org_home + f';'
+
+    ca_tls_ca = f'{crypto_base}fabric-ca/'
+    ca_tls_ca += f'ordererOrg/tls-cert.pem' if name == 'orderer' else f'{name}/tls-cert.pem'
+    command += f'fabric-ca-client enroll -u https://admin:adminpw@ca.'
+    command += f'{name}.' if name != 'orderer' else ''
+    command += f'{domain}:{port} --caname ca-{name} --tls.certfiles {ca_tls_ca};'
+    
+    config_text = f"NodeOUs:\n" \
+                  f"Enable: true\n" \
+                  f"ClientOUIdentifier:\n" \
+                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"  OrganizationalUnitIdentifier: client\n" \
+                  f"PeerOUIdentifier:\n" \
+                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"  OrganizationalUnitIdentifier: peer\n" \
+                  f"AdminOUIdentifier:\n" \
+                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"  OrganizationalUnitIdentifier: admin\n" \
+                  f"OrdererOUIdentifier:\n" \
+                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"OrganizationalUnitIdentifier: orderer"
+    command += f'echo "{config_text}" >> {org_home}msp/config.yaml;'
+    command += f'cp {org_home}msp/cacerts/* {org_home}msp/cacerts/localhost-{port}-ca-{name}.pem;'
+    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+
+
 def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
     org_home = f'{crypto_base}/organizations/peerOrganizations/{org_name}.{org_domain}'
     peer_home = f'{org_home}/peers/{peer_name}.{org_name}.{org_domain}'
