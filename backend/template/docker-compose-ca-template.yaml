@@ -1,4 +1,3 @@
----
 version: '2'
 
 networks:
@@ -20,7 +19,7 @@ services:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - /root/opt/organizations/fabric-ca/org1:/etc/hyperledger/fabric-ca-server
+      - $CRYPTO_BASE/organizations/fabric-ca/org1:/etc/hyperledger/fabric-ca-server
     container_name: ca.org1.test.com
     networks:
       - test
