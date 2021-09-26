@@ -24,4 +24,9 @@ services:
     networks:
       - test
       
-
+  configtxlator:
+    image: hyperledger/fabric-tools:2.2.0
+    ports:
+      - "7059:7059"
+    command: /usr/local/bin/configtxlator start
+    container_name: configtxlator
