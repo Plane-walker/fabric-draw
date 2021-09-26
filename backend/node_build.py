@@ -111,7 +111,7 @@ def update_hosts(new_hosts):
     command = 'echo "'
     for ip, domain in new_hosts.items():
         command += f'{ip} {domain}\n'
-    command += ' >> /etc/hosts'
+    command += '" >> /etc/hosts'
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
