@@ -30,8 +30,10 @@ class CAYamlGenerator(YamlGenerator):
         ca_information['container_name'] = node_id
         del docker_yaml['services']['ca.org1.test.com']
         docker_yaml['services'][node_id] = ca_information
-        with open(f'docker-compose-ca-{org_name}.yaml', 'w', encoding="utf-8") as file:
+        file_name = f'docker-compose-ca-{org_name}.yaml'
+        with open(file_name, 'w', encoding="utf-8") as file:
             yaml.dump(docker_yaml, file, Dumper=yaml.Dumper)
+        return file_name
 
 
 class OrderYamlGenerator(YamlGenerator):
@@ -49,8 +51,10 @@ class OrderYamlGenerator(YamlGenerator):
         order_information['volumes'][3] = f'{node_id}:/var/hyperledger/production/orderer'
         del docker_yaml['services']['orderer0.orderer.test.com']
         docker_yaml['services'][node_id] = order_information
-        with open(f'docker-compose-{org_name}-{node_name}.yaml', 'w', encoding="utf-8") as file:
+        file_name = f'docker-compose-{org_name}-{node_name}.yaml'
+        with open(file_name, 'w', encoding="utf-8") as file:
             yaml.dump(docker_yaml, file, Dumper=yaml.Dumper)
+        return file_name
 
 
 class PeerYamlGenerator(YamlGenerator):
@@ -72,5 +76,7 @@ class PeerYamlGenerator(YamlGenerator):
         peer_information['volumes'][3] = f'{node_id}:/var/hyperledger/production'
         del docker_yaml['services']['peer0.org1.test.com']
         docker_yaml['services'][node_id] = peer_information
-        with open(f'docker-compose-{org_name}-{node_name}.yaml', 'w', encoding="utf-8") as file:
+        file_name = f'docker-compose-{org_name}-{node_name}.yaml'
+        with open(file_name, 'w', encoding="utf-8") as file:
             yaml.dump(docker_yaml, file, Dumper=yaml.Dumper)
+        return file_name
