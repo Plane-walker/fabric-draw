@@ -35,7 +35,7 @@ Organizations:
         ID: OrdererMSP
 
         # MSPDir is the filesystem path which contains the MSP configuration.
-        MSPDir: /root/opt/organizations/ordererOrganizations/test.com/msp
+        MSPDir: /root/opt/organizations/test.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -61,7 +61,6 @@ Organizations:
         # and peers may to connect to to push transactions and receive blocks respectively.
         OrdererEndpoints:
             - "orderer0.test.com:7050"
-            - "orderer1.test.com:7050"
 
         # SampleOrg defines an MSP using the sampleconfig. It should never be used
     # in production but may be used as a template for other definitions.
@@ -84,7 +83,7 @@ Organizations:
         ID: Org1MSP
 
         # MSPDir is the filesystem path which contains the MSP configuration.
-        MSPDir: /root/opt/organizations/peerOrganizations/org1.test.com/msp
+        MSPDir: /root/opt/organizations/org1.test.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -373,12 +372,8 @@ Orderer: &OrdererDefaults
         Consenters:
             - Host: orderer0.test.com
               Port: 7050
-              ClientTLSCert: /root/opt/organizations/ordererOrganizations/test.com/orderers/orderer0.test.com/tls/server.crt
-              ServerTLSCert: /root/opt/organizations/ordererOrganizations/test.com/orderers/orderer0.test.com/tls/server.crt
-            - Host: orderer1.test.com
-              Port: 7050
-              ClientTLSCert: /root/test/organizations/ordererOrganizations/test.com/orderers/orderer1.test.com/tls/server.crt
-              ServerTLSCert: /root/test/organizations/ordererOrganizations/test.com/orderers/orderer1.test.com/tls/server.crt
+              ClientTLSCert: /root/opt/organizations/test.com/orderers/orderer0.test.com/tls/server.crt
+              ServerTLSCert: /root/opt/organizations/test.com/orderers/orderer0.test.com/tls/server.crt
 
         # Options to be specified for all the etcd/raft nodes. The values here
         # are the defaults for all new channels and can be modified on a
