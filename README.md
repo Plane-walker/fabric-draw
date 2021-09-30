@@ -20,7 +20,7 @@
         "committing_peers": ["peer0.org0.test.com"],
         "endorsing_peers": ["peer0.org0.test.com"]
       },
-	  "blockchains": "fabric-1",
+    "blockchains": "fabric-1",
     "channel": ["channel-1"]
     },
     "org1.test.com": {
@@ -32,7 +32,7 @@
         "committing_peers": ["peer0.org1.test.com"],
         "endorsing_peers": ["peer0.org1.test.com"]
       },
-	  "blockchains": "fabric-1",
+    "blockchains": "fabric-1",
     "channel": ["channel-1"]
     },
     "org2.test.com": {
@@ -44,7 +44,7 @@
         "committing_peers": ["peer0.org2.test.com"],
         "endorsing_peers": ["peer0.org2.test.com"]
       },
-	  "blockchains": "fabric-1",
+    "blockchains": "fabric-1",
     "channel": ["channel-1"]
     }
   },
