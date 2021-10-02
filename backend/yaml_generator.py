@@ -27,6 +27,7 @@ class CAYamlGenerator(YamlGenerator):
         ca_information = docker_yaml['services']['ca.org1.test.com']
         ca_information['environment'][4] = f'FABRIC_CA_SERVER_CSR_HOSTS=localhost, {node_id}'
         ca_information['environment'][1] = f'FABRIC_CA_SERVER_CA_NAME=ca-{org_name}'
+        ca_information['volumes'][0] = f'/root/opt/organizations/fabric-ca/{org_name}:/etc/hyperledger/fabric-ca-server'
         ca_information['container_name'] = node_id
         del docker_yaml['services']['ca.org1.test.com']
         docker_yaml['services'][node_id] = ca_information

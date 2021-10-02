@@ -1,6 +1,6 @@
 import subprocess
-import argparse
 import os
+import sys
 
 
 def mkdir(path: str):
@@ -116,19 +116,4 @@ def update_hosts(new_hosts):
 
 
 if __name__ == "__main__":
-    update_hosts({'1.1.1.1': 'a.com', '2.2.2.2': 'b.vom'})
-    parser = argparse.ArgumentParser(description="")
-
-    parser.add_argument("--docker-compose", type=str, help="Test docker_compose function.")
-    # Test: python3 node_build.py --docker-compose ./docker-compose.yml
-
-    parser.add_argument("--mkdir", type=str, help="Test mkdir function.")
-
-    args = parser.parse_args()
-
-    print(args)
-    if args.docker_compose:
-        docker_compose(args.docker_compose)
-        docker_compose(args.docker_compose, down=True)
-    elif args.mkdir:
-        mkdir(args.mkdir)
+    eval(sys.argv[1])(*sys.argv[2: -1])
