@@ -1,15 +1,5 @@
 import subprocess
 import argparse
-import os
-
-
-def mkdir(path: str):
-    """
-    :param path: The relative path from main program or absolute path
-    """
-    if not os.path.exists(path):
-        command = f'mkdir -p {path}'
-        subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
 def org_msp_generate(crypto_base: str, name: str, domain: str, port):
@@ -116,19 +106,9 @@ def update_hosts(new_hosts):
 
 
 if __name__ == "__main__":
-    update_hosts({'1.1.1.1': 'a.com', '2.2.2.2': 'b.vom'})
     parser = argparse.ArgumentParser(description="")
-
-    parser.add_argument("--docker-compose", type=str, help="Test docker_compose function.")
-    # Test: python3 node_build.py --docker-compose ./docker-compose.yml
-
-    parser.add_argument("--mkdir", type=str, help="Test mkdir function.")
-
+    parser.add_argument("--func_name", type=str, help="Function name.")
+    parser.add_argument('nargs', nargs='*')
     args = parser.parse_args()
+    eval(args.func_name)(*args.nargs)
 
-    print(args)
-    if args.docker_compose:
-        docker_compose(args.docker_compose)
-        docker_compose(args.docker_compose, down=True)
-    elif args.mkdir:
-        mkdir(args.mkdir)
