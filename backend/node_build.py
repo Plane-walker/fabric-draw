@@ -1,15 +1,5 @@
 import subprocess
-import os
-import sys
-
-
-def mkdir(path: str):
-    """
-    :param path: The relative path from main program or absolute path
-    """
-    if not os.path.exists(path):
-        command = f'mkdir -p {path}'
-        subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+import argparse
 
 
 def org_msp_generate(crypto_base: str, name: str, domain: str, port):
@@ -116,4 +106,9 @@ def update_hosts(new_hosts):
 
 
 if __name__ == "__main__":
-    eval(sys.argv[1])(*sys.argv[2: -1])
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("--func_name", type=str, help="Function name.")
+    parser.add_argument('nargs', nargs='*')
+    args = parser.parse_args()
+    eval(args.func_name)(*args.nargs)
+
