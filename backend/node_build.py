@@ -63,13 +63,13 @@ def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
-def init_channel_artifacts(crypto_base, fabric_name, channel_id, channel_name, org_names):
+def init_channel_artifacts(fabric_name, channel_id, peer_org_ids, crypto_base):
     channel_artifacts_path = f'{crypto_base}/channel-artifacts'
-    command = f'mkdir -p {channel_artifacts_path};'\
-              f'configtxgen -profile {fabric_name}OrdererGenesis -outputBlock {channel_artifacts_path}/orderer.genesis.block -channelID system-channel;' \
-              f'configtxgen -profile {channel_name}Channel -outputCreateChannelTx {channel_artifacts_path}/{channel_id}.tx -channelID {channel_id};'
-    for org_name in org_names:
-        command += f'configtxgen -profile {channel_name}Channel -outputAnchorPeersUpdate {channel_artifacts_path}/{org_name}MSPanchors.tx -channelID {channel_id} -asOrg {org_name}MSP;'
+    command = f'configtxgen -profile {fabric_name}OrdererGenesis -outputBlock {channel_artifacts_path}/orderer.genesis.block -channelID system-channel;' \
+              f'configtxgen -profile {fabric_name}Channel -outputCreateChannelTx {channel_artifacts_path}/{channel_id}.tx -channelID {channel_id};'
+    for peer_org_id in peer_org_ids:
+        org_name = peer_org_id.split('.', 1)[0]
+        command += f'configtxgen -profile {fabric_name}Channel -outputAnchorPeersUpdate {channel_artifacts_path}/{org_name.capitalize()}MSPanchors.tx -channelID {channel_id} -asOrg {org_name.capitalize()}MSP;'
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
