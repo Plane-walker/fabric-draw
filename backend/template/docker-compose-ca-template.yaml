@@ -1,7 +1,7 @@
 version: '2'
 
 networks:
-  test:
+  net:
     external:
       name: root_test
 
@@ -22,4 +22,4 @@ services:
       - $CRYPTO_BASE/organizations/fabric-ca/org1:/etc/hyperledger/fabric-ca-server
     container_name: ca.org1.test.com
     networks:
-      - test
+      - net

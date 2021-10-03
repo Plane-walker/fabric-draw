@@ -73,28 +73,23 @@ def init_channel_artifacts(fabric_name, channel_id, peer_org_ids, crypto_base):
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
-def init_docker_swarm(host, channel_name, data_path_port='5789'):
+def init_docker_swarm(host, fabric_name, crypto_base, data_path_port='5789'):
     command = f'docker swarm init --advertise-addr {host} --data-path-port {data_path_port}'
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     command = 'docker swarm join-token -q manager'
     token = subprocess.run(command, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
-    command = f'docker network create --attachable --driver overlay {channel_name}'
+    print(token)
+    command = f'docker network create --attachable --driver overlay {fabric_name}'
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-    return token
-
-
-def join_docker_swarm(token, host, target_host, target_port=2377):
-    command = f'docker swarm join --token {token} {target_host}:{target_port} --advertise-addr {host}'
+    command = f'echo "{token}" >> {crypto_base}/token'
     subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
-def docker_compose(path: str, down: bool = False) -> subprocess.CompletedProcess:
-    """
-    :param path: The relative path from main program or absolute path of docker-compose.yaml(including filename)
-    :param down: True means `docker-compose down` and False means `docker-compose up`
-    """
-    command = f"docker-compose -f {path} up -d" if not down else f"docker-compose -f {path} down"
-    return subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+def join_docker_swarm(host, target_host, crypto_base, target_port='2377'):
+
+    command = f'read token < {crypto_base}/token;' \
+              f'docker swarm join --token $token {target_host}:{target_port} --advertise-addr {host}'
+    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
 
 
 def update_hosts(new_hosts):
