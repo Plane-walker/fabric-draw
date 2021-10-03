@@ -21,12 +21,15 @@ class CAYamlGenerator(YamlGenerator):
     def __init__(self):
         super().__init__()
 
-    def generate(self, node_id, org_name):
+    def generate(self, node_id, org_name, fabric_name, fabric_port, crypto_path):
         with open('template/docker-compose-ca-template.yaml') as file:
             docker_yaml = yaml.load(file, Loader=yaml.Loader)
+        docker_yaml['networks']['net']['external']['name'] = fabric_name
         ca_information = docker_yaml['services']['ca.org1.test.com']
-        ca_information['environment'][4] = f'FABRIC_CA_SERVER_CSR_HOSTS=localhost, {node_id}'
         ca_information['environment'][1] = f'FABRIC_CA_SERVER_CA_NAME=ca-{org_name}'
+        ca_information['environment'][3] = f'FABRIC_CA_SERVER_PORT={fabric_port}'
+        ca_information['environment'][4] = f'FABRIC_CA_SERVER_CSR_HOSTS=localhost, {node_id}'
+        ca_information['ports'][0] = f'{fabric_port}:{fabric_port}'
         ca_information['volumes'][0] = f'/root/opt/organizations/fabric-ca/{org_name}:/etc/hyperledger/fabric-ca-server'
         ca_information['container_name'] = node_id
         del docker_yaml['services']['ca.org1.test.com']

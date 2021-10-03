@@ -46,45 +46,45 @@
   },
   "nodes": {
     "ca.orderer.test.com": {
-      "address": {"host": "10.134.66.131", "port": "7054", "sk": ""},
+      "address": {"host": "10.134.66.131", "ssh_port": "22", "fabric_port": "7054", "sk": ""},
       "type": ["ca"]
     },
     "orderer0.orderer.test.com": {
-      "address": {"host": "10.134.66.131", "port": "7050", "sk": ""},
+      "address": {"host": "10.134.66.131", "ssh_port": "22", "fabric_port": "7050", "sk": ""},
       "type": ["orderer"]
     },
     "orderer1.orderer.test.com": {
-      "address": {"host": "10.134.119.134", "port": "7050", "sk": ""},
+      "address": {"host": "10.134.50.142", "ssh_port": "22", "fabric_port": "7050", "sk": ""},
       "type": ["orderer"]
     },
     "orderer2.orderer.test.com": {
-      "address": {"host": "", "port": "7050", "sk": ""},
+      "address": {"host": "10.134.50.70", "ssh_port": "22", "fabric_port": "7050", "sk": ""},
       "type": ["orderer"]
     },
     "ca.org0.test.com": {
-      "address": {"host": "10.134.66.131", "port": "7054", "sk": ""},
+      "address": {"host": "10.134.66.131", "ssh_port": "22", "fabric_port": "8054", "sk": ""},
       "type": ["ca"]
     },
     "peer0.org0.test.com": {
-      "address": {"host": "10.134.66.131", "port": "7051", "sk": ""},
+      "address": {"host": "10.134.66.131", "ssh_port": "22", "fabric_port": "7051", "sk": ""},
       "bootstrap": ["127.0.0.1:7051"],
       "type": ["leader_peer", "anchor_peer", "committing_peer", "endorsing_peers"]
     },
     "ca.org1.test.com": {
-      "address": {"host": "10.134.119.134", "port": "7054", "sk": ""},
+      "address": {"host": "10.134.50.142", "ssh_port": "22", "fabric_port": "7054", "sk": ""},
       "type": ["ca"]
     },
     "peer0.org1.test.com": {
-      "address": {"host": "10.134.119.134", "port": "7051", "sk": ""},
+      "address": {"host": "10.134.50.142", "ssh_port": "22", "fabric_port": "7051", "sk": ""},
       "bootstrap": ["127.0.0.1:7051"],
       "type": ["leader_peer", "anchor_peer", "committing_peer", "endorsing_peers"]
     },
     "ca.org2.test.com": {
-      "address": {"host": "", "port": "7054", "sk": ""},
+      "address": {"host": "10.134.50.70", "ssh_port": "22", "fabric_port": "7054", "sk": ""},
       "type": ["ca"]
     },
     "peer0.org2.test.com": {
-      "address": {"host": "", "port": "7051", "sk": ""},
+      "address": {"host": "10.134.50.70", "ssh_port": "22", "fabric_port": "7051", "sk": ""},
       "bootstrap": ["127.0.0.1:7051"],
       "type": ["leader_peer", "anchor_peer", "committing_peer", "endorsing_peers"]
     },
