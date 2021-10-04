@@ -1,8 +1,9 @@
 import subprocess
 import argparse
+import os
 
 
-def org_msp_generate(crypto_base: str, name: str, domain: str, port):
+def org_msp_generate(name: str, domain: str, port, crypto_base: str):
     """
     order org path: CRYPTO_BASE/organizations/NAME.DOMAIN
     peer  org path: CRYPTO_BASE/organizations/NAME.DOMAIN
@@ -15,12 +16,12 @@ def org_msp_generate(crypto_base: str, name: str, domain: str, port):
                     e.g. order: https://admin:adminpw@ca.orderer.test.com:7054
                           peer: https://admin:adminpw@ca.org1.test.com:7054
     """
-    crypto_base += '/organizations/' if crypto_base[-1] != '/' else 'organizations/'
-    org_home = f'{crypto_base}/{name}.{domain}/'
-    command = f'mkdir -p ' + org_home + f';'
-
-    ca_tls_ca = f'{crypto_base}fabric-ca/{name}/tls-cert.pem'
-    command += f'fabric-ca-client enroll -u https://admin:adminpw@ca.{name}.{domain}:{port} --caname ca-{name} --tls.certfiles {ca_tls_ca};'
+    org_home = f'{crypto_base}/organizations/{name}.{domain}/'
+    command = f'mkdir -p {org_home};'
+    env = os.environ.copy()
+    env['FABRIC_CA_CLIENT_HOME'] = org_home
+    ca_tls_ca = f'{crypto_base}/organizations/fabric-ca/{name}/tls-cert.pem'
+    command += f'fabric-ca-client enroll -u https://admin:adminpw@ca.{name}.{domain}:{port} --caname ca-{name} -M {org_home}/msp --tls.certfiles {ca_tls_ca};'
     
     config_text = f"NodeOUs:\n" \
                   f"Enable: true\n" \
@@ -38,12 +39,14 @@ def org_msp_generate(crypto_base: str, name: str, domain: str, port):
                   f"OrganizationalUnitIdentifier: orderer"
     command += f'echo "{config_text}" >> {org_home}msp/config.yaml;'
     command += f'cp {org_home}msp/cacerts/* {org_home}msp/cacerts/localhost-{port}-ca-{name}.pem;'
-    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    subprocess.run(command, shell=True, env=env, stdout=subprocess.PIPE)
 
 
-def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
+def peer_msp_generate(peer_name, org_name, org_domain, ca_port, crypto_base):
     org_home = f'{crypto_base}/organizations/{org_name}.{org_domain}'
     peer_home = f'{org_home}/peers/{peer_name}.{org_name}.{org_domain}'
+    env = os.environ.copy()
+    env['FABRIC_CA_CLIENT_HOME'] = org_home
     ca_tls_ca = f'{crypto_base}/organizations/fabric-ca/{org_name}/tls-cert.pem'
     command = f'mkdir -p {peer_home};' \
               f'fabric-ca-client register --caname ca-{org_name} --id.name {peer_name} --id.secret {peer_name}pw --id.type peer --tls.certfiles {ca_tls_ca};' \
@@ -59,8 +62,8 @@ def peer_msp_generate(crypto_base, peer_name, org_name, org_domain, ca_port):
               f'mkdir -p {org_home}/tlsca;' \
               f'cp {peer_home}/tls/tlscacerts/* {org_home}/tlsca/tlsca.{org_name}.{org_domain}-cert.pem;' \
               f'mkdir -p {org_home}/ca;' \
-              f'cp {peer_home}/msp/cacerts/* {org_domain}/ca;'
-    subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+              f'cp {peer_home}/msp/cacerts/* {org_home}/ca;'
+    subprocess.run(command, shell=True, env=env, stdout=subprocess.PIPE)
 
 
 def init_channel_artifacts(fabric_name, channel_id, peer_org_ids, crypto_base):
