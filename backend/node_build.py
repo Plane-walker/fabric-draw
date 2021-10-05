@@ -24,19 +24,19 @@ def org_msp_generate(name: str, domain: str, port, crypto_base: str):
     command += f'fabric-ca-client enroll -u https://admin:adminpw@ca.{name}.{domain}:{port} --caname ca-{name} -M {org_home}/msp --tls.certfiles {ca_tls_ca};'
     
     config_text = f"NodeOUs:\n" \
-                  f"Enable: true\n" \
-                  f"ClientOUIdentifier:\n" \
-                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
-                  f"  OrganizationalUnitIdentifier: client\n" \
-                  f"PeerOUIdentifier:\n" \
-                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
-                  f"  OrganizationalUnitIdentifier: peer\n" \
-                  f"AdminOUIdentifier:\n" \
-                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
-                  f"  OrganizationalUnitIdentifier: admin\n" \
-                  f"OrdererOUIdentifier:\n" \
-                  f"  Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
-                  f"OrganizationalUnitIdentifier: orderer"
+                  f"  Enable: true\n" \
+                  f"  ClientOUIdentifier:\n" \
+                  f"    Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"    OrganizationalUnitIdentifier: client\n" \
+                  f"  PeerOUIdentifier:\n" \
+                  f"    Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"    OrganizationalUnitIdentifier: peer\n" \
+                  f"  AdminOUIdentifier:\n" \
+                  f"    Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"    OrganizationalUnitIdentifier: admin\n" \
+                  f"  OrdererOUIdentifier:\n" \
+                  f"    Certificate: cacerts/localhost-{port}-ca-{name}.pem\n" \
+                  f"    OrganizationalUnitIdentifier: orderer"
     command += f'echo "{config_text}" >> {org_home}msp/config.yaml;'
     command += f'cp {org_home}msp/cacerts/* {org_home}msp/cacerts/localhost-{port}-ca-{name}.pem;'
     subprocess.run(command, shell=True, env=env, stdout=subprocess.PIPE)
@@ -57,6 +57,11 @@ def peer_msp_generate(peer_name, org_name, org_domain, ca_port, crypto_base):
               f'cp {peer_home}/tls/tlscacerts/* {peer_home}/tls/ca.crt;' \
               f'cp {peer_home}/tls/signcerts/* {peer_home}/tls/server.crt;' \
               f'cp {peer_home}/tls/keystore/* {peer_home}/tls/server.key;' \
+              f'mkdir -p {org_home}/users/Admin@{org_name}.{org_domain};' \
+              f'fabric-ca-client register --caname ca-{org_name} --id.name {org_name}admin --id.secret {org_name}adminpw --id.type admin --tls.certfiles {ca_tls_ca};' \
+              f'fabric-ca-client enroll -u https://{org_name}admin:{org_name}adminpw@ca.{org_name}.{org_domain}:{ca_port} --caname ca-{org_name} -M {org_home}/users/Admin@{org_name}.{org_domain}/msp --tls.certfiles {ca_tls_ca};' \
+              f'cp {org_home}/users/Admin@{org_name}.{org_domain}/msp/cacerts/* {org_home}/users/Admin@{org_name}.{org_domain}/msp/cacerts/localhost-{ca_port}-ca-{org_name}.pem;' \
+              f'cp {org_home}/msp/config.yaml {org_home}/users/Admin@{org_name}.{org_domain}/msp/config.yaml;' \
               f'mkdir -p {org_home}/msp/tlscacerts;' \
               f'cp {peer_home}/tls/tlscacerts/* {org_home}/msp/tlscacerts/ca.crt;' \
               f'mkdir -p {org_home}/tlsca;' \

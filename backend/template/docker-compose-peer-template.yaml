@@ -2,7 +2,7 @@
 version: '2'
 
 networks:
-  test:
+  net:
     external:
       name: root_test
 
@@ -38,4 +38,4 @@ services:
     ports:
       - 7051:7051
     networks:
-      - test
+      - net
