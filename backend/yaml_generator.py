@@ -1,4 +1,6 @@
 import yaml
+import re
+from ruamel.yaml import YAML
 
 
 class YamlGenerator:
@@ -9,12 +11,94 @@ class YamlGenerator:
         pass
 
 
-class ConfigTXYamlGenerator(YamlGenerator):
-    def __init__(self):
-        super().__init__()
+class ConfigTXYamlGenerator:
+    def __init__(self, net_name: str, crypto_base: str):
+        self.yml = YAML()
+        self.yml.indent(mapping=4, sequence=6, offset=4)
+        self.crypto_base = crypto_base
+        self.net_name = net_name
+        self.configtx = None
+        
+    def update_organizations(self, groups: dict, nodes: dict):
+        Organizations = []
+        for key in groups:
+            elems = key.split(".")
+            name = elems[0].capitalize()
+            Organization = {}
+            Organization["Name"] = name
+            Organization["SkipAsForeign"] = False
+            Organization["ID"] = name + "MSP"
+            Organization["MSPDir"] = self.crypto_base + "/organizations/" + key + "/msp"
+            if "order" in key:
+                Organization["Policies"] = self.configtx["Organizations"][0]["Policies"]
+                Organization["OrdererEndpoints"] = groups[key]["nodes"]["orderer"]
+            else:
+                Organization["Policies"] = self.configtx["Organizations"][1]["Policies"]
+                Organization["AnchorPeers"] = []
+                for url in groups[key]["nodes"]["anchor_peers"]:
+                    Organization["AnchorPeers"].append({
+                        "Host": url,
+                        "Port": int(nodes[url]["address"]["port"])
+                    })
+            for Policie in Organization["Policies"]:
+                Rule = Organization["Policies"][Policie]["Rule"]
+                Organization["Policies"][Policie]["Rule"] = re.sub("Or\S+MSP", name, Rule)
+            Organizations.append(Organization)
+        self.configtx["Organizations"] = Organizations
 
-    def generate(self):
-        pass
+    def update_orderer(self, orderers: dict):
+        Orderer = self.configtx["Orderer"]
+        Addresses = []
+        Consenters = []
+        for orderer in orderers:
+            name = orderer.split(".")[0]
+            Addresses.append(orderers[orderer]["address"]["host"] + ":" + orderers[orderer]["address"]["port"])
+            Consenters.append({
+                "Host": orderers[orderer]["address"]["host"],
+                "Port": orderers[orderer]["address"]["port"],
+                "ClientTLSCert": self.crypto_base + "/organizations/" + ".".join(orderer.split(".")[-2:]) + "/orderers/" + orderer + "/tls/server.crt",
+                "ServerTLSCert": self.crypto_base + "/organizations/" + ".".join(orderer.split(".")[-2:]) + "/orderers/" + orderer + "/tls/server.crt"
+            })
+        Orderer["Addresses"] = Addresses
+        Orderer["EtcdRaft"]["Consenters"] = Consenters
+
+    def update_profiles(self):
+        OrdererGenesis = self.net_name + "OrdererGenesis"
+        Channel = self.net_name + "Channel"
+        Profiles = {
+            OrdererGenesis: self.configtx["Profiles"]["TwoOrgsOrdererGenesis"],
+            Channel: self.configtx["Profiles"]["TwoOrgsChannel"]
+        }
+        Profiles[OrdererGenesis]["Consortiums"]["SampleConsortium"]["Organizations"] = []
+        Profiles[OrdererGenesis]["Orderer"]["Organizations"] = []
+        Profiles[Channel]["Application"]["Organizations"] = []
+        for org in self.configtx["Organizations"]:
+            if "rder" not in org["Name"]:
+                Profiles[OrdererGenesis]["Consortiums"]["SampleConsortium"]["Organizations"].append(org)
+                Profiles[Channel]["Application"]["Organizations"].append(org)
+            else:
+                Profiles[OrdererGenesis]["Orderer"]["Organizations"].append(org)
+
+    def input_from(self, filename: str):
+        with open(filename) as file:
+            self.configtx = self.yml.load(file)
+        return self
+
+    def output_to(self, filename: str):
+        if not self.configtx:
+            return None
+        with open(filename, 'w', encoding="utf-8") as file:
+            self.yml.dump(self.configtx, file)
+        return self
+
+    def generate(self, groups: dict, nodes: dict, orderers: dict):
+        if not self.configtx:
+            return None
+        self.update_organizations(groups, nodes)
+        self.update_orderer(orderers)
+        self.update_profiles()
+        return self
+        
 
 
 class CAYamlGenerator(YamlGenerator):
