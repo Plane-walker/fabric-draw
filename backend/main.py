@@ -3,7 +3,7 @@ import time
 import io
 import os
 import stat
-from yaml_generator import CAYamlGenerator, OrderYamlGenerator, PeerYamlGenerator
+from yaml_generator import CAYamlGenerator, OrderYamlGenerator, PeerYamlGenerator, ConfigTXYamlGenerator
 
 
 def sftp_get_r(sftp_client, remote_path, local_path):
@@ -160,7 +160,14 @@ def generate_order(order_id, order_information, fabric_name, channel_id, peer_gr
     private_key = paramiko.RSAKey.from_private_key(key_file)
     ssh.connect(hostname=address['host'], port=address['ssh_port'], username='root', pkey=private_key)
     ssh.exec_command(f'if [ ! -d {crypto_base}/channel-artifacts ]; then mkdir -p {crypto_base}/channel-artifacts; fi')
-    ssh.exec_command(f'python node_build.py --func_name init_channel_artifacts {fabric_name} {channel_id} {peer_group_ids} "{crypto_base}"')
+    ssh.exec_command(f'python {crypto_base}/node_build.py --func_name init_channel_artifacts {fabric_name} {channel_id} {peer_group_ids} "{crypto_base}"')
+
+
+def generate_configtx(groups: dict, nodes: dict, orderers: dict, net_name: str, crypto_base: str):
+    configtx = ConfigTXYamlGenerator(net_name, crypto_base)
+    configtx.input_from("./template/configtx.yaml")\
+            .generate(groups, nodes, orderers)\
+            .output_to("./configtx.yaml")
 
 
 def parse_json(network_topology_json):
