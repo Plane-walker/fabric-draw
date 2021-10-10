@@ -18,6 +18,7 @@ class ConfigTXYamlGenerator:
         self.crypto_base = crypto_base
         self.net_name = net_name
         self.configtx = None
+        self.filename = ""
         
     def update_organizations(self, groups: dict, nodes: dict):
         Organizations = []
@@ -38,7 +39,7 @@ class ConfigTXYamlGenerator:
                 for url in groups[key]["nodes"]["anchor_peers"]:
                     Organization["AnchorPeers"].append({
                         "Host": url,
-                        "Port": int(nodes[url]["address"]["port"])
+                        "Port": int(nodes[url]["address"]["fabric_port"])
                     })
             for Policie in Organization["Policies"]:
                 Rule = Organization["Policies"][Policie]["Rule"]
@@ -52,12 +53,12 @@ class ConfigTXYamlGenerator:
         Consenters = []
         for orderer in orderers:
             name = orderer.split(".")[0]
-            Addresses.append(orderers[orderer]["address"]["host"] + ":" + orderers[orderer]["address"]["port"])
+            Addresses.append(orderers[orderer]["address"]["host"] + ":" + orderers[orderer]["address"]["fabric_port"])
             Consenters.append({
-                "Host": orderers[orderer]["address"]["host"],
-                "Port": orderers[orderer]["address"]["port"],
-                "ClientTLSCert": self.crypto_base + "/organizations/" + ".".join(orderer.split(".")[-2:]) + "/orderers/" + orderer + "/tls/server.crt",
-                "ServerTLSCert": self.crypto_base + "/organizations/" + ".".join(orderer.split(".")[-2:]) + "/orderers/" + orderer + "/tls/server.crt"
+                "Host": orderer,
+                "Port": int(orderers[orderer]["address"]["fabric_port"]),
+                "ClientTLSCert": self.crypto_base + "/organizations/" + ".".join(orderer.split(".")[-3:]) + "/peers/" + orderer + "/tls/server.crt",
+                "ServerTLSCert": self.crypto_base + "/organizations/" + ".".join(orderer.split(".")[-3:]) + "/peers/" + orderer + "/tls/server.crt"
             })
         Orderer["Addresses"] = Addresses
         Orderer["EtcdRaft"]["Consenters"] = Consenters
@@ -78,6 +79,10 @@ class ConfigTXYamlGenerator:
                 Profiles[Channel]["Application"]["Organizations"].append(org)
             else:
                 Profiles[OrdererGenesis]["Orderer"]["Organizations"].append(org)
+        self.configtx["Profiles"] = Profiles
+        
+    def get_filename(self):
+        return self.filename
 
     def input_from(self, filename: str):
         with open(filename) as file:
@@ -87,6 +92,7 @@ class ConfigTXYamlGenerator:
     def output_to(self, filename: str):
         if not self.configtx:
             return None
+        self.filename = filename
         with open(filename, 'w', encoding="utf-8") as file:
             self.yml.dump(self.configtx, file)
         return self
@@ -136,8 +142,8 @@ class OrderYamlGenerator(YamlGenerator):
         order_information['container_name'] = node_id
         order_information['environment'][2] = f'ORDERER_GENERAL_LISTENPORT={fabric_port}'
         order_information['environment'][5] = f'ORDERER_GENERAL_LOCALMSPID={org_name.capitalize()}MSP'
-        order_information['volumes'][1] = f'{crypto_path}/organizations/orderer.test.com/orderers/{node_id}/msp:/var/hyperledger/orderer/msp'
-        order_information['volumes'][2] = f'{crypto_path}/organizations/orderer.test.com/orderers/{node_id}/tls/:/var/hyperledger/orderer/tls'
+        order_information['volumes'][1] = f'{crypto_path}/organizations/orderer.test.com/peers/{node_id}/msp:/var/hyperledger/orderer/msp'
+        order_information['volumes'][2] = f'{crypto_path}/organizations/orderer.test.com/peers/{node_id}/tls/:/var/hyperledger/orderer/tls'
         order_information['volumes'][3] = f'{node_id}:/var/hyperledger/production/orderer'
         order_information['ports'][0] = f'{fabric_port}:{fabric_port}'
         del docker_yaml['services']['orderer0.orderer.test.com']
@@ -145,8 +151,8 @@ class OrderYamlGenerator(YamlGenerator):
         file_name = f'docker-compose-{org_name}-{node_name}.yaml'
         with open(file_name, 'w', encoding="utf-8") as file:
             yaml.dump(docker_yaml, file, Dumper=yaml.Dumper)
-        with open(docker_yaml, 'a') as file:
-            file.write(f'volumes:{node_id}:\n')
+        with open(file_name, 'a') as file:
+            file.write(f'volumes:\n  {node_id}:\n')
         return file_name
 
 

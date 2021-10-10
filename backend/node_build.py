@@ -71,9 +71,11 @@ def peer_msp_generate(peer_name, org_name, org_domain, ca_port, crypto_base):
     subprocess.run(command, shell=True, env=env, stdout=subprocess.PIPE)
 
 
-def init_channel_artifacts(fabric_name, channel_id, peer_org_ids, crypto_base):
+def init_channel_artifacts(fabric_name, channel_id, crypto_base: str, *args):
+    peer_org_ids = args
     channel_artifacts_path = f'{crypto_base}/channel-artifacts'
-    command = f'configtxgen -profile {fabric_name}OrdererGenesis -outputBlock {channel_artifacts_path}/orderer.genesis.block -channelID system-channel;' \
+    command = f'cd {crypto_base};' \
+              f'configtxgen -profile {fabric_name}OrdererGenesis -outputBlock {channel_artifacts_path}/orderer.genesis.block -channelID system-channel;' \
               f'configtxgen -profile {fabric_name}Channel -outputCreateChannelTx {channel_artifacts_path}/{channel_id}.tx -channelID {channel_id};'
     for peer_org_id in peer_org_ids:
         org_name = peer_org_id.split('.', 1)[0]
