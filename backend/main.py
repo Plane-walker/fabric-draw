@@ -23,6 +23,15 @@ def sftp_get_r(sftp_client, remote_path, local_path):
 def sftp_put_r(sftp_client, local_path, remote_path):
     if not os.path.exists(local_path):
         return
+    path = ""
+    for dir in remote_path.split("/"):
+        if dir == "":
+            continue
+        path += f"/{dir}"
+        try:
+            sftp_client.listdir(path)
+        except IOError:
+            sftp_client.mkdir(path)
     try:
         sftp_client.stat(remote_path)
     except IOError:
@@ -64,7 +73,7 @@ def generate_ca(ca_id, ca_information, fabric_name, target_host, crypto_base):
     ftp_client.put(file_name, f'{crypto_base}/{file_name}')
     stdin, stdout, stderr = ssh.exec_command(f'docker-compose -f {crypto_base}/{file_name} up -d')
     stdout.channel.recv_exit_status()
-    time.sleep(3)
+    time.sleep(4)
     tls_cert_path = f'organizations/fabric-ca/{group_name}'
     if not os.path.exists(tls_cert_path):
         os.makedirs(tls_cert_path)
@@ -151,7 +160,7 @@ def generate_peer(peer_id, peer_information, order_group_id, fabric_name, target
     ftp_client.close()
 
 
-def generate_order(order_id, order_information, fabric_name, channel_id, peer_group_ids, crypto_base='/root/opt'):
+def generate_order(order_id, order_information, fabric_name, channel_id, peer_group_ids, configtx_filename: str, crypto_base='/root/opt'):
     node_name, group_name, domain = order_id.split('.', 2)
     address = order_information['address']
     ssh = paramiko.SSHClient()
@@ -160,14 +169,40 @@ def generate_order(order_id, order_information, fabric_name, channel_id, peer_gr
     private_key = paramiko.RSAKey.from_private_key(key_file)
     ssh.connect(hostname=address['host'], port=address['ssh_port'], username='root', pkey=private_key)
     ssh.exec_command(f'if [ ! -d {crypto_base}/channel-artifacts ]; then mkdir -p {crypto_base}/channel-artifacts; fi')
-    ssh.exec_command(f'python {crypto_base}/node_build.py --func_name init_channel_artifacts {fabric_name} {channel_id} {peer_group_ids} "{crypto_base}"')
-
+    ftp_client = ssh.open_sftp()
+    sftp_put_r(ftp_client, f"organizations/{group_name}.{domain}/peers", f"{crypto_base}/organizations/{group_name}.{domain}/peers")
+    for peer in peer_group_ids:
+        sftp_put_r(ftp_client, f"organizations/{peer}/msp/cacerts", f"{crypto_base}/organizations/{peer}/msp/cacerts")
+        ftp_client.put(f"organizations/{peer}/msp/config.yaml", f"{crypto_base}/organizations/{peer}/msp/config.yaml")
+    orderer_yaml_generator = OrderYamlGenerator()
+    filename = orderer_yaml_generator.generate(order_id, group_name, node_name, fabric_name, address["fabric_port"], crypto_base)
+    ftp_client.put(filename, f"{crypto_base}/{filename}")
+    ftp_client.put(configtx_filename, f'{crypto_base}/{configtx_filename}')
+    while True:
+        try:
+            ftp_client.stat(f'{crypto_base}/{configtx_filename}')
+            ftp_client.stat(f'{crypto_base}/{filename}')
+            print("File exists.")
+            break
+        except IOError:
+            print("File not exists.")
+            time.sleep(2)
+    ftp_client.close()
+    stdin, stdout, stderr = ssh.exec_command(f'python {crypto_base}/node_build.py --func_name init_channel_artifacts {fabric_name} {channel_id} "{crypto_base}" {peer_group_ids} ')
+    stdout.channel.recv_exit_status()
+    print(stderr.readlines())
+    stdin, stdout, stderr = ssh.exec_command(f'docker-compose -f {crypto_base}/{filename} up -d')
+    stdout.channel.recv_exit_status()
+    print(stderr.readlines())
+    time.sleep(4)
+    ssh.close()
 
 def generate_configtx(groups: dict, nodes: dict, orderers: dict, net_name: str, crypto_base: str):
     configtx = ConfigTXYamlGenerator(net_name, crypto_base)
-    configtx.input_from("./template/configtx.yaml")\
-            .generate(groups, nodes, orderers)\
-            .output_to("./configtx.yaml")
+    return configtx.input_from("./template/configtx.yaml")\
+                   .generate(groups, nodes, orderers)\
+                   .output_to("./configtx.yaml")\
+                   .get_filename()
 
 
 def parse_json(network_topology_json):
@@ -194,8 +229,13 @@ def parse_json(network_topology_json):
         peer_ids = list(set(leader_peers_ids).union(set(anchor_peers_ids).union(set(committing_peers_ids)).union(set(endorsing_peers_ids))))
         for peer_id in peer_ids:
             generate_peer(peer_id, network_topology_json['nodes'][peer_id], order_group_id, network_topology_json['blockchains']['fabric-1']['name'], target_host, peer_ca_port, '/root/opt')
-    # for order_id in network_topology_json['groups'][order_group_id]['nodes']['orderer']:
-    #     generate_order(order_id, network_topology_json['nodes'][order_id], network_topology_json['blockchains']['fabric-1']['name'], network_topology_json['blockchains']['fabric-1']['channels'][0], peer_group_ids)
+    orderers = dict()
+    for node in network_topology_json["nodes"]:
+        if "orderer" in network_topology_json["nodes"][node]["type"]:
+            orderers[node] = network_topology_json["nodes"][node]
+    configtx_filename = generate_configtx(network_topology_json["groups"], network_topology_json["nodes"], orderers, network_topology_json["blockchains"]["fabric-1"]["name"], "/root/opt")
+    for order_id in network_topology_json['groups'][order_group_id]['nodes']['orderer']:
+        generate_order(order_id, network_topology_json['nodes'][order_id], network_topology_json['blockchains']['fabric-1']['name'], network_topology_json['blockchains']['fabric-1']['channels'][0], peer_group_ids, configtx_filename)
 
 
 if __name__ == '__main__':
